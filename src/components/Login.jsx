@@ -7,7 +7,10 @@ import logo from '../assets/logowhite.png';
 import { client } from '../client';
 import { gapi } from 'gapi-script';
 import { useEffect } from 'react';
+import { useState } from 'react';
+import Spinner from './Spinner';
 const Login = () => {
+  const [loading,setLoading] = useState(false)
   useEffect(()=>{
   gapi.load("client:auth2",()=>{
   gapi.auth2.init({clientId:process.env.REACT_APP_GOOGLE_API_TOKEN})
@@ -15,6 +18,7 @@ const Login = () => {
   },[])
   const navigate = useNavigate();
   const responseGoogle = (response) => {
+    setLoading(true)
     localStorage.setItem('user', JSON.stringify(response.profileObj));
     const { name, googleId, imageUrl } = response.profileObj;
     const doc = {
@@ -24,6 +28,7 @@ const Login = () => {
       image: imageUrl,
     };
     client.createIfNotExists(doc).then(() => {
+      setLoading(false)
       navigate('/', { replace: true });
     });
   };
@@ -49,7 +54,7 @@ const Login = () => {
           </div>
 
           <div className="shadow-2xl">
-            <GoogleLogin
+          {loading?<Spinner />:<GoogleLogin
               clientId={`${process.env.REACT_APP_GOOGLE_API_TOKEN}`}
               render={(renderProps) => (
                 <button
@@ -64,7 +69,8 @@ const Login = () => {
               onSuccess={responseGoogle}
               onFailure={responseGoogle}
               cookiePolicy="single_host_origin"
-            />
+            />}
+            
           </div>
         </div>
       </div>
